@@ -1,0 +1,69 @@
+{
+  "strategy": "zero_shot",
+  "prompt_prefix": "create table team (\n    team_id int primary key,\n    name varchar(20) not null,\n    region varchar(20) not null,\n    world_titles int default 0\n);\n\ncreate table player (\n    player_id int primary key,\n    name varchar(25) not null,\n    role varchar(20) not null,\n    country varchar(30) not null,\n    team_id int not null,\n    foreign key (team_id) references team (team_id)\n);\n\ncreate table matches (\n    match_id int primary key,\n    year int not null,\n    team1_id int not null,\n    team2_id int not null,\n    winner_id int not null,\n    foreign key (team1_id) references team (team_id),\n    foreign key (team2_id) references team (team_id),\n    foreign key (winner_id) references team (team_id)\n);\n\ncreate table playerStats (\n    stats_id int primary key,\n    player_id int not null,\n    match_id int not null,\n    kda float,\n    cs int,\n    vision int,\n    foreign key (player_id) references player (player_id),\n    foreign key (match_id) references matches (match_id)\n);\nGive me a sqlite select statement that answers the question. Only respond with sqlite syntax. If there is an error do not explain it!",
+  "question_results": [
+    {
+      "question": "Which player had the highest kda?",
+      "sql": "\nSELECT p.name, ps.kda\nFROM player p\nJOIN playerStats ps ON p.player_id = ps.player_id\nORDER BY ps.kda DESC\nLIMIT 1;\n",
+      "query_raw_response": "[('Zeka', 8.5)]",
+      "friendly_response": "Zeka had the highest KDA with 8.5.",
+      "error": "None"
+    },
+    {
+      "question": "Which players are from South Korea?",
+      "sql": "\nSELECT name FROM player WHERE country = 'South Korea';\n",
+      "query_raw_response": "[('Faker',), ('Zeus',), ('Oner',), ('Gumayusi',), ('Keria',), ('Deft',), ('Kingen',), ('Pyosik',), ('Zeka',), ('BeryL',)]",
+      "friendly_response": "Sure! The players from South Korea are Faker, Zeus, Oner, Gumayusi, Keria, Deft, Kingen, Pyosik, Zeka, and BeryL.",
+      "error": "None"
+    },
+    {
+      "question": "Which players are from China?",
+      "sql": "\nSELECT name FROM player WHERE country = 'China';\n",
+      "query_raw_response": "[('Xiaohu',), ('TheShy',), ('WeiWei',), ('Light',), ('Crisp',), ('Bin',), ('Xun',), ('Yagao',), ('Elk',), ('ON',)]",
+      "friendly_response": "Players from China are Xiaohu, TheShy, WeiWei, Light, Crisp, Bin, Xun, Yagao, Elk, and ON.",
+      "error": "None"
+    },
+    {
+      "question": "Are there any players from the USA?",
+      "sql": "\nSELECT * FROM player WHERE country = 'USA';\n",
+      "query_raw_response": "[]",
+      "friendly_response": "Sure! Could you please specify the sport or team you are referring to?",
+      "error": "None"
+    },
+    {
+      "question": "What player have kda higher than 4.0?",
+      "sql": "\nSELECT p.name \nFROM playerStats ps\nJOIN player p ON ps.player_id = p.player_id\nWHERE ps.kda > 4.0;\n",
+      "query_raw_response": "[('Faker',), ('Zeus',), ('Oner',), ('Gumayusi',), ('Keria',), ('Bin',), ('Xun',), ('Yagao',), ('Elk',), ('ON',), ('Faker',), ('Zeus',), ('Oner',), ('Gumayusi',), ('Keria',), ('Xiaohu',), ('TheShy',), ('WeiWei',), ('Light',), ('Crisp',), ('Faker',), ('Zeus',), ('Oner',), ('Gumayusi',), ('Keria',), ('Deft',), ('Kingen',), ('Pyosik',), ('Zeka',), ('BeryL',)]",
+      "friendly_response": "Sure! Players with a KDA higher than 4.0 include Faker, Zeus, Oner, Gumayusi, Keria, Bin, Xun, Yagao, Elk, ON, Xiaohu, TheShy, WeiWei, Light, Crisp, Deft, Kingen, Pyosik, Zeka, and BeryL.",
+      "error": "None"
+    },
+    {
+      "question": "Which players have won worlds more than twice?",
+      "sql": "\nSELECT p.name\nFROM player p\nJOIN team t ON p.team_id = t.team_id\nWHERE t.world_titles > 2;\n",
+      "query_raw_response": "[('Faker',), ('Zeus',), ('Oner',), ('Gumayusi',), ('Keria',)]",
+      "friendly_response": "Faker is the only player who has won Worlds more than twice.",
+      "error": "None"
+    },
+    {
+      "question": "Who has better kda, Faker or Keria?",
+      "sql": "\nSELECT player.name, AVG(playerStats.kda) AS average_kda\nFROM player\nJOIN playerStats ON player.player_id = playerStats.player_id\nWHERE player.name IN ('Faker', 'Keria')\nGROUP BY player.name\nORDER BY average_kda DESC;\n",
+      "query_raw_response": "[('Keria', 7.0), ('Faker', 6.966666666666666)]",
+      "friendly_response": "Keria has a better KDA than Faker.",
+      "error": "None"
+    },
+    {
+      "question": "Did Faker carry based on his kda and vision score in 2024?",
+      "sql": "\nSELECT ps.kda, ps.vision \nFROM playerStats ps\nJOIN player p ON ps.player_id = p.player_id\nJOIN matches m ON ps.match_id = m.match_id\nWHERE p.name = 'Faker' AND m.year = 2024;\n",
+      "query_raw_response": "[(6.8, 28)]",
+      "friendly_response": "With a KDA of 6.8 and a vision score of 28, it seems like Faker contributed significantly to his team's success.",
+      "error": "None"
+    },
+    {
+      "question": "Who had the highest cs out of the three years? And which year was it?",
+      "sql": "\nSELECT p.name, m.year, ps.cs\nFROM playerStats ps\nJOIN player p ON ps.player_id = p.player_id\nJOIN matches m ON ps.match_id = m.match_id\nORDER BY ps.cs DESC\nLIMIT 1;\n",
+      "query_raw_response": "[('Gumayusi', 2024, 360)]",
+      "friendly_response": "Gumayusi had the highest CS in 2024 with 360.",
+      "error": "None"
+    }
+  ]
+}
