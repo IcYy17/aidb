@@ -1,4 +1,4 @@
-# aidb
+# AI Database queries
 <h1>SQL DB AI Project<h1>
 
 ## Overview
